@@ -1,5 +1,5 @@
 #include <task.h>
-#include <schedule.h>
+#include <taskqueue.h>
 #include <QDebug>
 
 Task::Job::Job() : _worker(nullptr) {
@@ -96,15 +96,6 @@ void Task::fail() {
 	resetTimer();
 
 	_status = Task::FAILED;
-	Q_EMIT statusChanged();
-	delete this;
-}
-
-void Task::cancel() {
-	qDebug() << "cancel task" << this;
-	resetTimer();
-
-	_status = Task::CANCELED;
 	Q_EMIT statusChanged();
 	delete this;
 }

@@ -11,7 +11,7 @@ QLowEnergyService * BtConnection::service() const {
 	return _service;
 }
 
-void BtConnection::select(QLowEnergyService * service, Task * task) {
+Deferred<void> BtConnection::select(QLowEnergyService * service) {
 	if(_service) {
 		delete _service;
 		_service = nullptr;
@@ -21,11 +21,7 @@ void BtConnection::select(QLowEnergyService * service, Task * task) {
 	_service = service;
 
 	if(!_service) {
-		if(task) {
-			return task->succeed();
-		}
-
-		return;
+		return async::complete();
 	}
 
 	connect(_service, &QLowEnergyService::stateChanged, [this](const QLowEnergyService::ServiceState state) {
@@ -33,7 +29,6 @@ void BtConnection::select(QLowEnergyService * service, Task * task) {
 
 		if(state == QLowEnergyService::ServiceDiscovered) {
 			emit connected();
-			_tasks.succeeded(Tasks::DISCOVER_DETAILS);
 		}
 	});
 
@@ -59,11 +54,14 @@ void BtConnection::select(QLowEnergyService * service, Task * task) {
 		}
 	});
 
-	if(task) {
-		_tasks.add(Tasks::DISCOVER_DETAILS, task);
-	}
+	auto d = async::subscribe(
+		async::observe(this, &BtConnection::connected),
+		async::observe(this, &BtConnection::disconnected)
+	);
 
 	_service->discoverDetails();
+
+	return d;
 }
 
 QLowEnergyCharacteristic BtConnection::characteristic(const QBluetoothUuid & uuid) {

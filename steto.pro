@@ -50,6 +50,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 android: QT += androidextras
 
 include(modules/tasks/tasks.pri)
+include(vendor/vendor.pri)
 
 DISTFILES += \
     android/AndroidManifest.xml \

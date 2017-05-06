@@ -16,7 +16,7 @@ public:
 	explicit BtConnection(QObject *parent = 0);
 
 	QLowEnergyService * service() const;
-	void select(QLowEnergyService * service, Task * t = nullptr);
+	Deferred<void> select(QLowEnergyService * service);
 
 	QLowEnergyCharacteristic characteristic(const QBluetoothUuid & uuid);
 	void write(const QLowEnergyCharacteristic & c, const QByteArray & data);

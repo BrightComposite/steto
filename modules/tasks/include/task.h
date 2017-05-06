@@ -11,7 +11,7 @@
 #include <sstream>
 #include <memory>
 
-class Schedule;
+class TaskQueue;
 
 class TaskException : public std::runtime_error
 {
@@ -85,7 +85,6 @@ public:
 		NOT_FINISHED,
 		SUCCEEDED,
 		FAILED,
-		CANCELED
 	};
 	Q_ENUM(Status)
 
@@ -108,7 +107,6 @@ public:
 
 	void succeed();
 	void fail();
-	void cancel();
 
 Q_SIGNALS:
 	void dataChanged();

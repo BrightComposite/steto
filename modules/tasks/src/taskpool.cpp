@@ -49,42 +49,11 @@ void TaskPool::failed(int key) {
 	}
 }
 
-void TaskPool::canceled(int key) {
-	auto i = _tasks.find(key);
-	qDebug() << "Tasks pending:" << _tasks.size();
-
-	if(i != _tasks.end()) {
-		qDebug() << "Canceled task" << key;
-		auto & list = i->second;
-
-		for(Task * t : list) {
-			qDebug() << "Remove task" << key;
-			t->cancel();
-		}
-
-		list.clear();
-		_tasks.erase(i);
-	}
-}
-
 void TaskPool::failedAll() {
 	qDebug() << "Failed all tasks";
 	for(auto & entry : _tasks) {
 		for(auto & t : entry.second) {
 			t->fail();
-		}
-
-		entry.second.clear();
-	}
-
-	_tasks.clear();
-}
-
-void TaskPool::canceledAll() {
-	qDebug() << "Canceled all tasks";
-	for(auto & entry : _tasks) {
-		for(auto & t : entry.second) {
-			t->cancel();
 		}
 
 		entry.second.clear();

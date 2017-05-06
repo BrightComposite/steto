@@ -18,14 +18,13 @@ DeviceService::DeviceService(QObject *parent) : QObject(parent) {
 
 	_local = new QBluetoothLocalDevice(this);
 	_agent = new QBluetoothDeviceDiscoveryAgent(this);
-	_tasks = new TaskPool(this);
 	_connection = new BtConnection(this);
 	_data = new DataService(_connection);
 
 	connect(_local, &QBluetoothLocalDevice::hostModeStateChanged, [this](QBluetoothLocalDevice::HostMode state) {
 		if(state == QBluetoothLocalDevice::HostConnectable) {
 			qDebug() << "Bluetooth enabled!";
-			_tasks->succeeded(Tasks::ENABLE);
+			emit enabled();
 		}
 	});
 /*
@@ -49,20 +48,22 @@ DeviceService::DeviceService(QObject *parent) : QObject(parent) {
 
 	connect(_agent, &QBluetoothDeviceDiscoveryAgent::finished, [this]() {
 		qDebug() << "Device discovery finished!";
-		_tasks->succeeded(Tasks::SEARCH);
+		emit devicesFound();
 	});
 
 	connect(_agent, static_cast<void(QBluetoothDeviceDiscoveryAgent::*)(QBluetoothDeviceDiscoveryAgent::Error)>(&QBluetoothDeviceDiscoveryAgent::error), [this](QBluetoothDeviceDiscoveryAgent::Error error) {
 		qWarning() << error;
-		_tasks->failed(Tasks::SEARCH);
+		emit deviceDiscoveryCancel();
 	});
 
 	connect(_connection, &BtConnection::connected, [this]() {
 		emit connectedChanged();
+		emit connected();
 	});
 
 	connect(_connection, &BtConnection::disconnected, [this]() {
 		emit connectedChanged();
+		emit disconnected();
 	});
 }
 
@@ -74,7 +75,7 @@ QQmlListProperty<Device> DeviceService::devices() {
 	return {this, _devices};
 }
 
-bool DeviceService::connected() const {
+bool DeviceService::isConnected() const {
 	return _connection->service() != nullptr;
 }
 
@@ -106,15 +107,20 @@ void DeviceService::search() {
 	qDebug() << "Start device discovery...";
 
 	_agent->stop();
-	_tasks->failed(Tasks::SEARCH);
+	emit deviceDiscoveryCancel();
 
 	clearDevices();
 
-	Schedule::task("enable bt", [this](Task * t) {
-		enable(t);
-	})->then("search devices", [this](Task * t) {
-		_tasks->add(Tasks::SEARCH, t);
+	TaskQueue::future(this, &DeviceService::enable)
+	->then([this]() {
+		auto d = async::subscribe(
+			async::observe(this, &DeviceService::devicesFound),
+			async::observe(this, &DeviceService::deviceDiscoveryCancel)
+		);
+
 		_agent->start(QBluetoothDeviceDiscoveryAgent::LowEnergyMethod);
+
+		return d;
 	})->run();
 }
 
@@ -125,46 +131,47 @@ void DeviceService::select(const QString & address) {
 	}
 
 	_agent->stop();
-	_tasks->succeeded(Tasks::SEARCH);
+	emit devicesFound();
 
-	auto * s = Schedule::task("clear existent connections", [this](Task * t) {
+	auto b = TaskQueue::future([this]() {
 		if(!_le) {
-			return t->succeed();
+			return async::complete();
 		}
 
 		if(_currentDevice) {
-			_tasks->add(Tasks::DISCONNECT, t);
-			return _le->disconnectFromDevice();
+			auto d = async::subscribe(async::observe(this, &DeviceService::disconnected));
+			_le->disconnectFromDevice();
+			return d;
 		}
 
 		clearServices();
+		return async::complete();
 	});
 
 	if(address == "0") {
-		return s->run();
+		return b->run();
 	}
 
-	s->then("find device", [this, address](Task * t) {
+	b->then([this](const QString & address) {
 		auto i = std::find_if(_devices.begin(), _devices.end(), [address](Device * d) {
 			return d->address() == address;
 		});
 
 		if(i == _devices.end()) {
 			qWarning() << "Can't find device with address" << address;
-			return t->fail();
+			return async::cancel();
 		}
 
 		_currentDevice = *i;
 		emit currentDeviceChanged();
 
-		_tasks->failed(Tasks::CONNECT);
-		_tasks->failed(Tasks::DISCOVERY);
+		emit serviceDiscoveryCancel();
 
 		_le = new QLowEnergyController(_currentDevice->info(), this);
 
 		connect(_le, &QLowEnergyController::connected, [this]() {
 			qDebug() << "Connected to" << _currentDevice->name();
-			_tasks->succeeded(Tasks::CONNECT);
+			emit connected();
 		});
 
 		connect(_le, &QLowEnergyController::disconnected, [this]() {
@@ -174,9 +181,8 @@ void DeviceService::select(const QString & address) {
 
 			clearServices();
 
-			_tasks->failed(Tasks::CONNECT);
-			_tasks->failed(Tasks::DISCOVERY);
-			_tasks->succeeded(Tasks::DISCONNECT);
+			emit serviceDiscoveryCancel();
+			emit disconnected();
 		});
 
 		connect(_le, &QLowEnergyController::serviceDiscovered, [this](const QBluetoothUuid & uuid) {
@@ -186,47 +192,66 @@ void DeviceService::select(const QString & address) {
 
 		connect(_le, &QLowEnergyController::discoveryFinished, [this]() {
 			qDebug() << "Service discovery finished!";
-			_tasks->succeeded(Tasks::DISCOVERY);
+			emit servicesFound();
 		});
 
 		connect(_le, static_cast<void(QLowEnergyController::*)(QLowEnergyController::Error)>(&QLowEnergyController::error), [this](QLowEnergyController::Error error) {
 			qWarning() << error;
-			_tasks->failed(Tasks::DISCOVERY);
+			emit serviceDiscoveryCancel();
 		});
 
-		return t->succeed();
-	})->then("connect to device", [this](Task * t) {
+		return async::complete();
+	}, address)->then([this]() {
 		qDebug() << "Connect to" << _currentDevice->name();
 
-		_tasks->add(Tasks::CONNECT, t);
+		auto d = async::subscribe(
+			async::observe(this, &DeviceService::connected),
+			async::observe(this, &DeviceService::disconnected)
+		);
+
 		_le->connectToDevice();
-	})->then("discover services", [this](Task * t) {
+
+		return d;
+	})->then([this]() {
 		qDebug() << "Start service discovery for" << _currentDevice->name();
 
-		_tasks->add(Tasks::DISCOVERY, t);
+		auto d = async::subscribe(
+			async::observe(this, &DeviceService::servicesFound),
+			async::observe(this, &DeviceService::serviceDiscoveryCancel)
+		);
+
 		_le->discoverServices();
-	})->then("connect to service", [this](Task * t) {
+
+		return d;
+	})->then([this]() {
 		if(std::find(_availableServices.begin(), _availableServices.end(), DeviceService::IO_SERVICE) == _availableServices.end()) {
 			qWarning() << "IO service not found!";
-			return t->fail();
+			return async::cancel();
 		}
 
 		qDebug() << "Connect to service" << DeviceService::IO_SERVICE;
-		return _connection->select(_le->createServiceObject(DeviceService::IO_SERVICE, _le), t);
-	})->then("subscribe to notifications", [this](Task * t) {
+		return _connection->select(_le->createServiceObject(DeviceService::IO_SERVICE, _le));
+	})->then([this]() {
 		auto c = _connection->characteristic(DeviceService::IO_CHARACTERISTIC);
 		_connection->subscribe(c);
-		return t->succeed();
+
+		return async::complete();
 	})->run();
 }
 
-void DeviceService::enable(Task * task) {
+Deferred<void> DeviceService::findDevice() {
+
+}
+
+Deferred<void> DeviceService::enable() {
 	if(_local->hostMode() == QBluetoothLocalDevice::HostConnectable) {
-		return task->succeed();
+		return async::complete();
 	}
 
 	qDebug() << "Enable bluetooth...";
 
-	_tasks->add(Tasks::ENABLE, task);
+	auto d = async::subscribe(async::observe(this, &DeviceService::enabled));
 	_local->setHostMode(QBluetoothLocalDevice::HostConnectable);
+
+	return d;
 }

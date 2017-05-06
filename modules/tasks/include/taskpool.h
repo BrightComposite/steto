@@ -18,9 +18,7 @@ public:
 	void add(int key, Task * r);
 	void succeeded(int key);
 	void failed(int key);
-	void canceled(int key);
 	void failedAll();
-	void canceledAll();
 
 Q_SIGNALS:
 

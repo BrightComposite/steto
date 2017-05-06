@@ -5,10 +5,10 @@
 #include <QQmlListProperty>
 
 #include <Device>
-#include <Task>
 #include <DataService>
 
 #include <QBluetoothUuid>
+#include <taskqueue.h>
 
 class BtConnection;
 class QBluetoothLocalDevice;
@@ -20,7 +20,7 @@ class DeviceService : public QObject
 	Q_OBJECT
 	Q_PROPERTY(Device * currentDevice READ currentDevice NOTIFY currentDeviceChanged)
 	Q_PROPERTY(QQmlListProperty<Device> devices READ devices NOTIFY devicesChanged)
-	Q_PROPERTY(bool connected READ connected NOTIFY connectedChanged)
+	Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectedChanged)
 	Q_PROPERTY(DataService * data READ data CONSTANT)
 
 public:
@@ -28,7 +28,7 @@ public:
 
 	Device * currentDevice() const;
 	QQmlListProperty<Device> devices();
-	bool connected() const;
+	bool isConnected() const;
 	DataService * data() const;
 
 	static QBluetoothUuid IO_SERVICE;
@@ -39,24 +39,24 @@ signals:
 	void devicesChanged();
 	void connectedChanged();
 
+	void enabled();
+	void connected();
+	void disconnected();
+	void devicesFound();
+	void deviceDiscoveryCancel();
+	void servicesFound();
+	void serviceDiscoveryCancel();
+
 public slots:
 	void search();
 	void select(const QString & address);
 
 private:
-	enum Tasks {
-		ENABLE,
-		SEARCH,
-		CONNECT,
-		DISCONNECT,
-		DISCOVERY
-	};
+	Deferred<void> findDevice();
+	Deferred<void> enable();
 
-	void enable(Task * task);
 	void clearDevices();
 	void clearServices();
-
-	TaskPool * _tasks = nullptr;
 
 	Device * _currentDevice = nullptr;
 	QList<Device *> _devices;
