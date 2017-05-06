@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/ru/applabs">
+        <file>ru/applabs/Utils.qml</file>
+        <file>ru/applabs/qmldir</file>
+    </qresource>
+</RCC>

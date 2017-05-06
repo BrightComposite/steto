@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/ru/applabs">
+        <file>ru/applabs/lodash/Lodash.qml</file>
+        <file>ru/applabs/lodash/qmldir</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,10 @@
+module steto.view
+
+Header 1.0 Header.qml
+MainMenu 1.0 MainMenu.qml
+DeviceList 1.0 DeviceList.qml
+Visualization 1.0 Visualization.qml
+
+MenuButton 1.0 components/MenuButton.qml
+SideShadow 1.0 components/SideShadow.qml
+ListShadow 1.0 components/ListShadow.qml

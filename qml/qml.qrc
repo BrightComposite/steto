@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>steto/main.qml</file>
+        <file>steto/qmldir</file>
+        <file>steto/view/qmldir</file>
+        <file>steto/view/MainMenuForm.qml</file>
+        <file>steto/view/MainMenu.qml</file>
+        <file>steto/view/components/MenuButton.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>steto/view/DeviceListForm.qml</file>
+        <file>steto/view/DeviceList.qml</file>
+        <file>steto/view/Header.qml</file>
+        <file>steto/view/components/SideShadow.qml</file>
+        <file>steto/view/components/ListShadow.qml</file>
+        <file>steto/view/Visualization.qml</file>
+        <file>steto/view/VisualizationForm.qml</file>
+    </qresource>
+</RCC>
