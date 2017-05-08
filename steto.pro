@@ -1,4 +1,4 @@
-QT += widgets qml quick bluetooth
+QT += qml quick bluetooth
 
 CONFIG += c++11
 
@@ -50,6 +50,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 android: QT += androidextras
 
 include(modules/tasks/tasks.pri)
+include(libs/fft-real/fft-real.pri)
 include(vendor/vendor.pri)
 
 DISTFILES += \

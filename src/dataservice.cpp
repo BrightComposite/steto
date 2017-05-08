@@ -3,12 +3,76 @@
 #include <QDebug>
 
 DataService::DataService(BtConnection * connection) : QObject(connection), _connection(connection) {
-	_active = _connection->service() != nullptr;
+	_timer = new QTimer(this);
+	_timer->setInterval(60);
 
 	connect(_connection, &BtConnection::disconnected, [this]() {
 		if(_active) {
 			_active = false;
 			emit activeChanged();
+		}
+	});
+
+	connect(_timer, &QTimer::timeout, [this]() {
+		if(_displayed.size() > DISPLAYED_SIZE) {
+			_displayed.erase(_displayed.begin(), _displayed.begin() + (_displayed.size() - 128));
+		}
+
+		emit valuesFlushed();
+	});
+
+	connect(this, &DataService::activeChanged, [this]() {
+		if(_active) {
+			_timer->start();
+			emit valuesFlushed();
+		} else {
+			_timer->stop();
+		}
+	});
+
+	connect(this, &DataService::completed, [this]() {
+		deactivate();
+
+		float out[SIZE];
+		_fft.do_fft(out, _collected.data());
+		_fft.rescale(out);
+
+		_spectre.clear();
+
+		for(int i = 0; i < DISPLAYED_SIZE; ++i) {
+			int a = SIZE / 2 - std::abs(SIZE / 2 - i);
+			int b = SIZE - std::abs(SIZE / 2 - i);
+
+			float f = a % (SIZE / 2) == 0 ? std::abs(out[a]) : std::sqrt(out[a] * out[a] + out[b] * out[b]);
+			_spectre.push_back(f);
+			qDebug() << f;
+		}
+
+		emit spectreChanged();
+		emit valuesFlushed();
+	});
+
+	_connection->notify(DeviceService::IO_CHARACTERISTIC, [this](const QByteArray & value) {
+		qDebug() << value;
+
+		if(_active) {
+			int v = 0;
+			int counter = 0;
+
+			for(auto c : value) {
+				v = c - 100;
+				_collected.push_back(v);
+
+				if(++counter == 8) {
+					_displayed.push_back(v);
+					counter = 0;
+				}
+
+				if(_collected.size() == SIZE) {
+					emit completed();
+					return;
+				}
+			}
 		}
 	});
 }
@@ -17,51 +81,90 @@ bool DataService::active() const {
 	return _active;
 }
 
-void DataService::toggle() {
-	if(_connection->service() == nullptr) {
-		qWarning() << "Connection is invalid";
-		return;
-	}
-
-	auto c = _connection->characteristic(DeviceService::IO_CHARACTERISTIC);
-	_connection->write(c, _active ? "A0" : "A1");
-
-	_active = !_active;
-	emit activeChanged();
+int DataService::count() const {
+	return _collected.size();
 }
 
-void DataService::activate() {
+float DataService::progress() const {
+	return float(count()) / SIZE;
+}
+
+const QList<int> & DataService::displayed() const {
+	return _displayed;
+}
+
+const QList<qreal> & DataService::spectre() const {
+	return _spectre;
+}
+
+void DataService::start() {
 	if(_active) {
-		qDebug() << "Already activated";
-		return;
+		deactivate();
 	}
 
-	if(_connection->service() == nullptr) {
-		qWarning() << "Connection is invalid";
-		return;
-	}
+	_collected.clear();
+	_displayed.clear();
+	emit valuesFlushed();
 
-	auto c = _connection->characteristic(DeviceService::IO_CHARACTERISTIC);
-	_connection->write(c, "A1");
-
-	_active = true;
-	emit activeChanged();
+	async::chain(this, &DataService::activate)
+	-> then(async::observe(this, &DataService::completed))
+	-> run();
 }
 
-void DataService::deactivate() {
-	if(!_active) {
-		qDebug() << "Already inactive";
-		return;
+void DataService::setDisplayRange(int offset, uint count, uint samplePeriod) {
+	if(samplePeriod > 256) {
+		samplePeriod = 256;
 	}
 
+	if(count * samplePeriod > _collected.size()) {
+		count = _collected.size() / samplePeriod;
+	}
+
+	if(offset < 0) {
+		offset = 0;
+	} else if(offset + count * samplePeriod > _collected.size()) {
+		offset = _collected.size() - count * samplePeriod;
+	}
+
+	_displayed.clear();
+
+	for(int i = offset; i < offset + count * samplePeriod; i += samplePeriod) {
+		_displayed.push_back(int(_collected[i]));
+	}
+
+	emit valuesFlushed();
+}
+
+QFuture<void> DataService::activate() {
 	if(_connection->service() == nullptr) {
 		qWarning() << "Connection is invalid";
-		return;
+		return async::cancel();
 	}
 
 	auto c = _connection->characteristic(DeviceService::IO_CHARACTERISTIC);
-	_connection->write(c, "A0");
+
+	auto d = async::deferred<void>();
+
+	async::chain(_connection, &BtConnection::write, c, "A1")
+	-> success_with([=]() {
+		_active = true;
+		emit activeChanged();
+	})
+	-> subscribe(d)
+	-> run();
+
+	return d.future();
+}
+
+QFuture<void> DataService::deactivate() {
+	if(_connection->service() == nullptr) {
+		qWarning() << "Connection is invalid";
+		return async::cancel();
+	}
 
 	_active = false;
 	emit activeChanged();
+
+	auto c = _connection->characteristic(DeviceService::IO_CHARACTERISTIC);
+	return _connection->write(c, "A0");
 }

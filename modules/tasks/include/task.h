@@ -11,7 +11,7 @@
 #include <sstream>
 #include <memory>
 
-class TaskQueue;
+class AsyncChain;
 
 class TaskException : public std::runtime_error
 {

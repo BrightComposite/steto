@@ -22,8 +22,8 @@ Page {
         }
 
         MenuButton {
-            text: "Пациенты"
-            visible: deviceService.connected
+            text: "Исследование"
+            //visible: deviceService.isConnected
 
             onClicked: {
                 viewport.push(visualization)

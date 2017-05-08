@@ -20,7 +20,9 @@ class DeviceService : public QObject
 	Q_OBJECT
 	Q_PROPERTY(Device * currentDevice READ currentDevice NOTIFY currentDeviceChanged)
 	Q_PROPERTY(QQmlListProperty<Device> devices READ devices NOTIFY devicesChanged)
+	Q_PROPERTY(bool isValid READ isValid CONSTANT)
 	Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectedChanged)
+	Q_PROPERTY(bool isConnecting READ isConnecting NOTIFY connectingChanged)
 	Q_PROPERTY(DataService * data READ data CONSTANT)
 
 public:
@@ -28,7 +30,9 @@ public:
 
 	Device * currentDevice() const;
 	QQmlListProperty<Device> devices();
+	bool isValid() const;
 	bool isConnected() const;
+	bool isConnecting() const;
 	DataService * data() const;
 
 	static QBluetoothUuid IO_SERVICE;
@@ -38,8 +42,10 @@ signals:
 	void currentDeviceChanged();
 	void devicesChanged();
 	void connectedChanged();
+	void connectingChanged();
 
 	void enabled();
+	void disabled();
 	void connected();
 	void disconnected();
 	void devicesFound();
@@ -52,8 +58,14 @@ public slots:
 	void select(const QString & address);
 
 private:
-	Deferred<void> findDevice();
-	Deferred<void> enable();
+	QFuture<void> enable();
+	QFuture<void> discoverDevices();
+	QFuture<void> findDevice(const QString & address);
+	QFuture<void> connectToDevice();
+	QFuture<void> disconnectFromDevice();
+	QFuture<void> discoverServices();
+	QFuture<void> connectToService();
+	QFuture<void> subscribeToService();
 
 	void clearDevices();
 	void clearServices();
@@ -63,6 +75,7 @@ private:
 
 	BtConnection * _connection;
 	DataService * _data;
+	bool _isConnecting = false;
 
 	QBluetoothLocalDevice * _local = nullptr;
 	QBluetoothDeviceDiscoveryAgent * _agent = nullptr;

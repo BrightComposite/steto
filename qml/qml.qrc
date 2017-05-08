@@ -14,5 +14,11 @@
         <file>steto/view/components/ListShadow.qml</file>
         <file>steto/view/Visualization.qml</file>
         <file>steto/view/VisualizationForm.qml</file>
+        <file>steto/view/components/Chart.qml</file>
+        <file>steto/view/components/ProgressRing.qml</file>
+        <file>steto/view/components/chart/Signal.qml</file>
+        <file>steto/view/components/chart/Spectrogram.qml</file>
+        <file>steto/view/SignalChart.qml</file>
+        <file>steto/view/components/ChartButton.qml</file>
     </qresource>
 </RCC>

@@ -11,7 +11,7 @@ QLowEnergyService * BtConnection::service() const {
 	return _service;
 }
 
-Deferred<void> BtConnection::select(QLowEnergyService * service) {
+QFuture<void> BtConnection::select(QLowEnergyService * service) {
 	if(_service) {
 		delete _service;
 		_service = nullptr;
@@ -32,16 +32,30 @@ Deferred<void> BtConnection::select(QLowEnergyService * service) {
 		}
 	});
 
-	connect(_service, &QLowEnergyService::characteristicWritten, [](const QLowEnergyCharacteristic & info, const QByteArray & value) {
-		qDebug() << "Characteristic written" << info.uuid() << "value:" << value;
+	connect(_service, &QLowEnergyService::characteristicWritten, [this](const QLowEnergyCharacteristic & c, const QByteArray & value) {
+		qDebug() << "Characteristic written" << c.uuid() << "value:" << value;
+		emit written();
+
+		for(auto & d : _writes[c.uuid().toString()]) {
+			d.complete();
+		}
 	});
 
-	connect(_service, &QLowEnergyService::characteristicChanged, [](const QLowEnergyCharacteristic & info, const QByteArray & value) {
-		qDebug() << "Characteristic changed" << info.uuid() << "value:" << value;
+	connect(_service, &QLowEnergyService::characteristicChanged, [this](const QLowEnergyCharacteristic & c, const QByteArray & value) {
+		for(auto & cb : _callbacks[c.uuid().toString()]) {
+			cb(value);
+		}
+
+		emit changed();
 	});
 
-	connect(_service, &QLowEnergyService::characteristicRead, [](const QLowEnergyCharacteristic & info, const QByteArray & value) {
-		qDebug() << "Characteristic read" << info.uuid() << "value:" << value;
+	connect(_service, &QLowEnergyService::characteristicRead, [this](const QLowEnergyCharacteristic & c, const QByteArray & value) {
+		qDebug() << "Characteristic read" << c.uuid() << "value:" << value;
+		emit read();
+
+		for(auto & d : _reads[c.uuid().toString()]) {
+			d.complete();
+		}
 	});
 
 	connect(_service, static_cast<void(QLowEnergyService::*)(QLowEnergyService::ServiceError)>(&QLowEnergyService::error), [this](QLowEnergyService::ServiceError error) {
@@ -54,36 +68,52 @@ Deferred<void> BtConnection::select(QLowEnergyService * service) {
 		}
 	});
 
-	auto d = async::subscribe(
+	auto f = async::connect(
 		async::observe(this, &BtConnection::connected),
 		async::observe(this, &BtConnection::disconnected)
 	);
 
 	_service->discoverDetails();
 
-	return d;
+	return f;
 }
 
 QLowEnergyCharacteristic BtConnection::characteristic(const QBluetoothUuid & uuid) {
 	return _service->characteristic(uuid);
 }
 
-void BtConnection::write(const QLowEnergyCharacteristic & c, const QByteArray & data) {
+QFuture<void> BtConnection::write(const QLowEnergyCharacteristic & c, const QByteArray & data) {
 	if(!_service) {
 		qWarning() << "Can't write to characteristic" << c.uuid() << "- there is no active service";
-		return;
+		return async::cancel();
 	}
+
+	auto d = async::deferred<void>();
+	_writes[c.uuid().toString()].push_back(d);
 
 	_service->writeCharacteristic(c, data);
+
+	return async::connect(
+		d.future(),
+		async::observe(this, &BtConnection::disconnected)
+	);
 }
 
-void BtConnection::read(const QLowEnergyCharacteristic & c) {
+QFuture<void> BtConnection::read(const QLowEnergyCharacteristic & c) {
 	if(!_service) {
 		qWarning() << "Can't read from characteristic" << c.uuid() << "- there is no active service";
-		return;
+		return async::cancel();
 	}
 
+	auto d = async::deferred<void>();
+	_reads[c.uuid().toString()].push_back(d);
+
 	_service->readCharacteristic(c);
+
+	return async::connect(
+		d.future(),
+		async::observe(this, &BtConnection::disconnected)
+	);
 }
 
 void BtConnection::subscribe(const QLowEnergyCharacteristic & c) {
@@ -97,5 +127,9 @@ void BtConnection::subscribe(const QLowEnergyCharacteristic & c) {
 	if (desc.isValid()) {
 		_service->writeDescriptor(desc, QByteArray::fromHex("0100"));
 	}
+}
+
+void BtConnection::notify(const QBluetoothUuid & uuid, const std::function<void(const QByteArray &)> & cb) {
+	_callbacks[uuid.toString()].push_back(cb);
 }
 

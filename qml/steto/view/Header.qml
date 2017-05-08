@@ -27,7 +27,7 @@ ToolBar {
             height: parent.height
             width: height
 
-            visible: viewport.depth > 0
+            visible: viewport.depth > 1
             onClicked: viewport.pop()
         }
 

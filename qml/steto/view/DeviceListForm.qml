@@ -39,6 +39,9 @@ Page {
 
             Material.background: Material.color(Material.Grey, Material.Shade900)
 
+            enabled: !deviceService.isConnecting
+            visible: deviceService.currentDevice == null || modelData.address == deviceService.currentDevice.address
+
             contentItem: Item {
                 anchors {
                     fill: parent
@@ -96,7 +99,7 @@ Page {
                         Layout.alignment: Qt.AlignVCenter
 
                         text: ""
-                        checked: deviceService.connected && (modelData.address == deviceService.currentDevice.address)
+                        checked: deviceService.currentDevice && (modelData.address == deviceService.currentDevice.address) && deviceService.isConnected
                         enabled: false
                     }
                 }
