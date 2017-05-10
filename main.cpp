@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
 	qmlRegisterType<Device>("steto", 1, 0, "Device");
 	qmlRegisterType<DeviceService>("steto", 1, 0, "DeviceService");
 	qmlRegisterType<DataService>("steto", 1, 0, "DataService");
+	qmlRegisterType<FileService>("steto", 1, 0, "FileService");
 
 	QQmlApplicationEngine engine;
 

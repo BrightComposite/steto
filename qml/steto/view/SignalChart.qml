@@ -13,7 +13,7 @@ Chart {
 
     height: 200
 
-    readonly property bool completed: deviceService.data.count == DataService.SIZE
+    property bool completed: false
 
     property int movementSpeed: 8
     property int samplesCount: 128
@@ -22,10 +22,7 @@ Chart {
 
     readonly property int maxZoom: 8
     readonly property int samplePeriod: zoom <= 0 ? 1 << maxZoom : zoom < maxZoom ? 1 << (maxZoom - zoom) : 1
-    readonly property int dragOffset: dragHandle.x * dragMax / (dragArea.width - dragHandle.width)
-
-    minViewport: deviceService.isValid ? completed ? samplesCount : 160 : 0
-    model: deviceService.isValid ? deviceService.data.displayed : [125, 31, 35, -74, -122, 64, 34, -64, -34, 34, 64, 23, -24, -64, -74]
+    readonly property int dragOffset: Math.floor(dragHandle.x * dragMax / (dragArea.width - dragHandle.width) / samplePeriod) * samplePeriod
 
     function setDragOffset(value) {
         if(value < 0) {
@@ -34,25 +31,12 @@ Chart {
             value = dragMax
         }
 
-        dragHandle.x = value * (dragArea.width - dragHandle.width) / dragMax
-    }
-
-    onDragOffsetChanged: {
-        deviceService.data.setDisplayRange(dragOffset, samplesCount, samplePeriod)
-    }
-
-    onSamplesCountChanged: {
-        deviceService.data.setDisplayRange(dragOffset, samplesCount, samplePeriod)
-    }
-
-    onSamplePeriodChanged: {
-        deviceService.data.setDisplayRange(dragOffset, samplesCount, samplePeriod)
+        dragHandle.x = dragMax > 0 ? value * (dragArea.width - dragHandle.width) / dragMax : 0
     }
 
     onCompletedChanged: {
         if(completed) {
-            console.log("Completed")
-            setDragOffset(dragMax)
+            setDragOffset(0)
         }
     }
 
@@ -62,7 +46,7 @@ Chart {
             margins: 8
         }
 
-        visible: deviceService.data.count == DataService.SIZE
+        visible: completed
 
         Item {
             anchors {
@@ -77,26 +61,26 @@ Chart {
             RowLayout {
                 anchors.fill: parent
 
-                ChartButton {
+                LongPressButton {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
                     text: "<"
 
                     enabled: dragOffset > 0
-                    maxPressDuration: 16
+                    maxPressDuration: 32
 
                     onTriggered: setDragOffset(dragOffset - movementSpeed * samplePeriod * (1 + pressDuration))
                 }
 
-                ChartButton {
+                LongPressButton {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
                     text: ">"
 
                     enabled: dragOffset < dragMax
-                    maxPressDuration: 16
+                    maxPressDuration: 32
 
                     onTriggered: setDragOffset(dragOffset + movementSpeed * samplePeriod * (1 + pressDuration))
                 }
@@ -116,7 +100,7 @@ Chart {
             RowLayout {
                 anchors.fill: parent
 
-                ChartButton {
+                LongPressButton {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
@@ -126,7 +110,7 @@ Chart {
                     onTriggered: --zoom
                 }
 
-                ChartButton {
+                LongPressButton {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
@@ -164,6 +148,10 @@ Chart {
                 border {
                     width: 1
                     color: "#222"
+                }
+
+                Component.onCompleted: {
+                    dragHandle.x = 0
                 }
 
                 MouseArea {

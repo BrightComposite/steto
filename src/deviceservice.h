@@ -6,6 +6,7 @@
 
 #include <Device>
 #include <DataService>
+#include <FileService>
 
 #include <QBluetoothUuid>
 #include <taskqueue.h>

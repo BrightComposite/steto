@@ -3,9 +3,7 @@ import QtQuick 2.0
 DeviceListForm {
     id: page
 
-    list {
-        model: deviceService.devices
-    }
+    model: deviceService.devices
 
     onSearch: {
         deviceService.search()

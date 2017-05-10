@@ -10,13 +10,16 @@ HEADERS += \
 	src/Device \
 	src/DeviceService \
     src/dataservice.h \
-    src/DataService
+    src/DataService \
+	src/fileservice.h \
+	src/FileService
 
 SOURCES += main.cpp \
     src/btconnection.cpp \
     src/deviceservice.cpp \
     src/device.cpp \
-    src/dataservice.cpp
+    src/dataservice.cpp \
+    src/fileservice.cpp
 
 RESOURCES += qml/qml.qrc
 

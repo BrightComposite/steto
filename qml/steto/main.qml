@@ -25,6 +25,11 @@ ApplicationWindow {
         id: deviceService
     }
 
+    FileService {
+        id: patientsService
+        currentPath: "common"
+    }
+
     header: Header {}
 
     StackView {

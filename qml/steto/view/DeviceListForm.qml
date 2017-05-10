@@ -11,13 +11,13 @@ Page {
 
     title: "Устройство"
 
-    property alias list: list
+    property var model: []
 
     signal search
     signal select(string address)
 
-    ListView {
-        id: list
+    Item {
+        id: container
 
         anchors {
             top: parent.top
@@ -27,101 +27,123 @@ Page {
         }
 
         width: 250
-        clip: true
 
-        model: 5
+        Flickable {
+            id: flickable
 
-        delegate: Button {
-            id: device
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: list.width
-            height: 100
+            anchors.fill: parent
+            contentHeight: column.height
 
-            Material.background: Material.color(Material.Grey, Material.Shade900)
+            clip: true
 
-            enabled: !deviceService.isConnecting
-            visible: deviceService.currentDevice == null || modelData.address == deviceService.currentDevice.address
+            Column {
+                id: column
 
-            contentItem: Item {
                 anchors {
-                    fill: parent
+                    left: parent.left
+                    right: parent.right
                 }
 
-                RowLayout {
-                    anchors {
-                        fill: parent
-                        leftMargin: 16
-                        rightMargin: 16
-                    }
+                spacing: 8
 
-                    Column {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
+                Repeater {
+                    model: page.model
 
-                        spacing: 4
+                    Button {
+                        id: device
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: column.width
+                        height: 100
 
-                        Text {
+                        Material.background: Material.color(Material.Grey, Material.Shade900)
+
+                        enabled: !deviceService.isConnecting
+                        visible: deviceService.currentDevice == null || modelData.address == deviceService.currentDevice.address
+
+                        contentItem: Item {
                             anchors {
-                                left: parent.left
-                                right: parent.right
+                                fill: parent
                             }
 
-                            text: modelData.name
-                            color: "#fff"
+                            RowLayout {
+                                anchors {
+                                    fill: parent
+                                    leftMargin: 16
+                                    rightMargin: 16
+                                }
 
-                            font {
-                                pointSize: 24
+                                Column {
+                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    spacing: 4
+
+                                    Text {
+                                        anchors {
+                                            left: parent.left
+                                            right: parent.right
+                                        }
+
+                                        text: modelData.name
+                                        color: "#fff"
+
+                                        font {
+                                            pointSize: 24
+                                        }
+
+                                        elide: Label.ElideRight
+                                    }
+
+                                    Text {
+                                        anchors {
+                                            left: parent.left
+                                            right: parent.right
+                                        }
+
+                                        text: modelData.address
+                                        color: "#aaa"
+
+                                        font {
+                                            pointSize: 10
+                                        }
+
+                                        elide: Label.ElideRight
+                                    }
+                                }
+
+                                CheckBox {
+                                    Layout.preferredWidth: 40
+                                    Layout.preferredHeight: 40
+                                    Layout.alignment: Qt.AlignVCenter
+
+                                    text: ""
+                                    checked: deviceService.currentDevice && (modelData.address == deviceService.currentDevice.address) && deviceService.isConnected
+                                    enabled: false
+                                }
                             }
-
-                            elide: Label.ElideRight
                         }
 
-                        Text {
-                            anchors {
-                                left: parent.left
-                                right: parent.right
+                        onClicked: {
+                            if(!deviceService.currentDevice || modelData.address != deviceService.currentDevice.address) {
+                                page.select(modelData.address)
+                            } else {
+                                page.select("0")
                             }
-
-                            text: modelData.address
-                            color: "#aaa"
-
-                            font {
-                                pointSize: 10
-                            }
-
-                            elide: Label.ElideRight
                         }
                     }
-
-                    CheckBox {
-                        Layout.preferredWidth: 40
-                        Layout.preferredHeight: 40
-                        Layout.alignment: Qt.AlignVCenter
-
-                        text: ""
-                        checked: deviceService.currentDevice && (modelData.address == deviceService.currentDevice.address) && deviceService.isConnected
-                        enabled: false
-                    }
-                }
-            }
-
-            onClicked: {
-                if(!deviceService.currentDevice || modelData.address != deviceService.currentDevice.address) {
-                    page.select(modelData.address)
-                } else {
-                    page.select("0")
                 }
             }
         }
 
         ListShadow {
-            list: parent
+            anchors.fill: parent
+            list: flickable
         }
     }
 
     Text {
-        anchors.centerIn: list
-        width: list.width
+        anchors.centerIn: container
+        width: container.width
 
         text: "Нет доступных устройств"
         color: "#ccc"
@@ -133,7 +155,7 @@ Page {
         horizontalAlignment: Qt.AlignHCenter
         verticalAlignment: Qt.AlignVCenter
 
-        visible: list.count == 0
+        visible: page.model.length == 0
     }
 
     MenuButton {

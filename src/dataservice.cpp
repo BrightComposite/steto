@@ -168,3 +168,50 @@ QFuture<void> DataService::deactivate() {
 	auto c = _connection->characteristic(DeviceService::IO_CHARACTERISTIC);
 	return _connection->write(c, "A0");
 }
+
+bool DataService::serialize(const QString & filepath) {
+	if(_collected.size() != SIZE) {
+		qWarning() << "There is not valid data to save to file" << filepath;
+		return false;
+	}
+
+	QFile file(filepath);
+
+	if(!file.open(QFile::WriteOnly)) {
+		qWarning() << "Can't open file" << filepath << "for write";
+		return false;
+	}
+
+	QByteArray data;
+
+	for(auto val : _collected) {
+		data.append(QByteArray::number(int(val)) + "\n");
+	}
+
+	file.write(data);
+	file.close();
+
+	return true;
+}
+
+bool DataService::unserialize(const QString & filepath) {
+	QFile file(filepath);
+
+	if(!file.open(QFile::ReadOnly)) {
+		qWarning() << "Can't open file" << filepath << "for read";
+		return false;
+	}
+
+	_collected.clear();
+	auto bytes = file.readAll();
+	file.close();
+
+	for(auto & v : bytes.split('\n')) {
+		if(v.size() > 0) {
+			_collected.push_back(float(v.toInt()));
+		}
+	}
+
+	emit completed();
+	return true;
+}

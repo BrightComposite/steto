@@ -40,6 +40,8 @@ signals:
 public slots:
 	void start();
 	void setDisplayRange(int offset, uint count, uint samplePeriod);
+	bool serialize(const QString & filepath);
+	bool unserialize(const QString & filepath);
 
 private:
 	QFuture<void> activate();

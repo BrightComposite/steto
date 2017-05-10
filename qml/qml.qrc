@@ -19,6 +19,7 @@
         <file>steto/view/components/chart/Signal.qml</file>
         <file>steto/view/components/chart/Spectrogram.qml</file>
         <file>steto/view/SignalChart.qml</file>
-        <file>steto/view/components/ChartButton.qml</file>
+        <file>steto/view/components/LongPressButton.qml</file>
+        <file>steto/view/components/FlatButton.qml</file>
     </qresource>
 </RCC>

@@ -5,8 +5,8 @@ Item {
 
     property string text: ""
     property bool enabled: true
-    property int maxPressDuration: 8
-    readonly property int pressDuration: mouseArea.pressDuration
+    property bool pressed: button.enabled && mouseArea.pressed
+    property int fontSize: 24
 
     signal triggered
 
@@ -14,7 +14,13 @@ Item {
         anchors.fill: parent
 
         radius: 4
-        color: mouseArea.pressed ? "#444" : "#333"
+        color: mouseArea.pressed ? "#555" : "#444"
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 200
+            }
+        }
 
         border {
             width: 1
@@ -31,7 +37,7 @@ Item {
         color: button.enabled ? "#a0ffffff" : "#20ffffff"
 
         font {
-            pointSize: 24
+            pointSize: button.fontSize
         }
 
         horizontalAlignment: Qt.AlignHCenter
@@ -43,24 +49,6 @@ Item {
 
         anchors.fill: parent
         enabled: button.enabled
-
-        property int pressDuration: 0
-
-        Timer {
-            id: timer
-            repeat: true
-            interval: 200
-
-            running: button.enabled && mouseArea.pressed
-
-            onTriggered: {
-                button.triggered()
-
-                if(pressDuration < maxPressDuration) {
-                    ++pressDuration
-                }
-            }
-        }
 
         onClicked: {
             if(button.enabled) {
