@@ -1,35 +1,53 @@
-QT += qml quick bluetooth
+QT += qml quick bluetooth multimedia
 
-CONFIG += c++11
+CONFIG += c++14
 
 HEADERS += \
 	src/btconnection.h \
-	src/deviceservice.h \
 	src/device.h \
 	src/BtConnection \
 	src/Device \
 	src/DeviceService \
-    src/dataservice.h \
-    src/DataService \
-	src/fileservice.h \
-	src/FileService
+	src/audioservice.h \
+	src/AudioService \
+    src/recordingservice.h \
+    src/models/signalmodel.h \
+    src/models/spectremodel.h \
+    src/fft.h \
+    src/deviceservice.h \
+	src/RecordingService \
+    src/models/samplesmodel.h \
+    src/models/SamplesModel \
+    src/models/DirectoryModel \
+    src/models/directorymodel.h \
+    src/sampleprovider.h \
+    src/SampleProvider \
+    tests/testsamplegenerator.h
 
 SOURCES += main.cpp \
     src/btconnection.cpp \
     src/deviceservice.cpp \
     src/device.cpp \
-    src/dataservice.cpp \
-    src/fileservice.cpp
+    src/audioservice.cpp \
+    src/recordingservice.cpp \
+    src/models/signalmodel.cpp \
+    src/models/spectremodel.cpp \
+    src/models/samplesmodel.cpp \
+    src/models/directorymodel.cpp \
+    src/sampleprovider.cpp \
+    tests/testsamplegenerator.cpp
 
 RESOURCES += qml/qml.qrc
 
 INCLUDEPATH += $$PWD/src/
+INCLUDEPATH += $$PWD/libs/libsndfile/src
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH += \
 	$$PWD/qml/ \
 	$$PWD/qml/steto/ \
-	$$PWD/qml/steto/view
+	$$PWD/qml/steto/view \
+	$$PWD/qml/steto/model
 
 # Additional import path used to resolve QML modules just for Qt Quick Designer
 QML_DESIGNER_IMPORT_PATH =
@@ -52,7 +70,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 android: QT += androidextras
 
-include(modules/tasks/tasks.pri)
+include(modules/common/common.pri)
+include(modules/lodash/lodash.pri)
+include(modules/storage/storage.pri)
+include(modules/async/async.pri)
 include(libs/fft-real/fft-real.pri)
 include(vendor/vendor.pri)
 
@@ -66,3 +87,12 @@ DISTFILES += \
 	android/gradlew.bat
 
 ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+
+android {
+	LIBS += $$PWD/libs/libsndfile/src/.libs/libsndfile.so
+
+	contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
+		ANDROID_EXTRA_LIBS = \
+			$$PWD/libs/libsndfile/src/.libs/libsndfile.so
+	}
+}

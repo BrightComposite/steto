@@ -1,0 +1,8 @@
+module ru.applabs.storage
+Migrations 1.0 Migrations.qml
+Model 1.0 Model.qml
+QueryBuilder 1.0 QueryBuilder.qml
+Record 1.0 Record.qml
+Repository 1.0 Repository.qml
+Storage 1.0 Storage.qml
+

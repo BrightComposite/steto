@@ -5,7 +5,7 @@
 #include <QBluetoothUuid>
 #include <QLowEnergyCharacteristic>
 
-#include <Task>
+#include <Async>
 
 class QLowEnergyService;
 
@@ -34,11 +34,6 @@ signals:
 public slots:
 
 private:
-	enum Tasks {
-		DISCOVER_DETAILS
-	};
-
-	TaskPool _tasks;
 	QLowEnergyService * _service = nullptr;
 	QMap<QString, std::vector<std::function<void(const QByteArray &)>>> _callbacks;
 	QMap<QString, std::vector<Deferred<void>>> _writes;

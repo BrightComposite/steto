@@ -1,0 +1,5 @@
+module steto.model
+
+Migrations		1.0 Migrations.qml
+Patient			1.0 Patient.qml
+PatientsRepo	1.0 PatientsRepo.qml

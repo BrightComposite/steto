@@ -5,11 +5,10 @@
 #include <QQmlListProperty>
 
 #include <Device>
-#include <DataService>
-#include <FileService>
+#include <RecordingService>
 
 #include <QBluetoothUuid>
-#include <taskqueue.h>
+#include <Async>
 
 class BtConnection;
 class QBluetoothLocalDevice;
@@ -24,7 +23,7 @@ class DeviceService : public QObject
 	Q_PROPERTY(bool isValid READ isValid CONSTANT)
 	Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectedChanged)
 	Q_PROPERTY(bool isConnecting READ isConnecting NOTIFY connectingChanged)
-	Q_PROPERTY(DataService * data READ data CONSTANT)
+	Q_PROPERTY(RecordingService * recording READ recording CONSTANT)
 
 public:
 	explicit DeviceService(QObject *parent = 0);
@@ -34,7 +33,7 @@ public:
 	bool isValid() const;
 	bool isConnected() const;
 	bool isConnecting() const;
-	DataService * data() const;
+	RecordingService * recording() const;
 
 	static QBluetoothUuid IO_SERVICE;
 	static QBluetoothUuid IO_CHARACTERISTIC;
@@ -75,7 +74,7 @@ private:
 	QList<Device *> _devices;
 
 	BtConnection * _connection;
-	DataService * _data;
+	RecordingService * _recording;
 	bool _isConnecting = false;
 
 	QBluetoothLocalDevice * _local = nullptr;

@@ -1,46 +1,62 @@
 import QtQuick 2.7
-import QtQuick.Controls 2.0
-import QtQuick.Window 2.0
+import QtQuick.Controls 2.1
+
+import ru.applabs.storage 1.0
+import ru.applabs.lodash 1.0
 
 import steto 1.0
 import steto.view 1.0
+import steto.model 1.0
 
-ApplicationWindow {
+Window {
     id: window
 
-    visible: true
-    width: 480
-    height: 640
     title: "Стетоскоп"
 
-    property alias viewport: viewport
+    property var _: Lodash._
 
-    property Component mainMenu: Component { MainMenu {} }
-    property Component deviceList: Component { DeviceList {} }
-    property Component visualization: Component { Visualization {} }
+    property Component devicesView:             Component { Devices {} }
+    property Component measurementView:         Component { Measurement {} }
+    property Component analysisView:            Component { Analysis {} }
+    property Component externalAnalysisView:    Component { ExternalAnalysis {} }
+    property Component patientInfoView:         Component { PatientInfo {} }
+    property Component patientsView:            Component { PatientsList {} }
+    property Component createPatientView:       Component { CreatePatient {} }
+    property Component editPatientView:         Component { EditPatient {} }
+    property Component externalFilesView:       Component { ExternalFiles {} }
+    property Component testAnalysisView:        Component { TestAnalysis {} }
 
-    property real q: Math.min(window.width / 480, window.height / 640) * 3.7 / Screen.logicalPixelDensity
+    Storage {
+        id: storage
+        migrations: Migrations {}
+
+        database: "stetoscope"
+        version: "1.0"
+    }
 
     DeviceService {
         id: deviceService
     }
 
-    FileService {
-        id: patientsService
-        currentPath: "common"
+    DirectoryModel {
+        id: patientsDir
+        currentPath: "patients/" + (patients.currentPatient ? patients.currentPatient.id : "default")
+        extension: "txt"
+        nameOnly: true
     }
 
-    header: Header {}
+    DirectoryModel {
+        id: wavDir
+        currentPath: "wav"
+        extension: "wav"
+    }
 
-    StackView {
-        id: viewport
+    PatientsRepo {
+        id: patients
+        storage: storage
+    }
 
-        anchors.centerIn: parent
-        initialItem: mainMenu
-
-        scale: q
-
-        width: Math.ceil(parent.width / q)
-        height: Math.ceil(parent.height / q)
+    Component.onCompleted: {
+        storage.load()
     }
 }

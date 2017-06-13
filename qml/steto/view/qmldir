@@ -1,16 +1,33 @@
 module steto.view
 
-MainMenu      1.0 MainMenu.qml
-DeviceList    1.0 DeviceList.qml
-Visualization 1.0 Visualization.qml
+Devices				1.0 devices/Devices.qml
+ExternalFiles		1.0 external/ExternalFiles.qml
+MainMenu			1.0 main-menu/MainMenu.qml
+Analysis			1.0 measurement/Analysis.qml
+ExternalAnalysis	1.0 measurement/ExternalAnalysis.qml
+Measurement			1.0 measurement/Measurement.qml
+TestAnalysis		1.0 measurement/TestAnalysis.qml
+PatientInfo			1.0 patients/PatientInfo.qml
+PatientsList		1.0 patients/PatientsList.qml
+CreatePatient		1.0 patients/CreatePatient.qml
+EditPatient			1.0 patients/EditPatient.qml
 
-Header      1.0 Header.qml
-SignalChart 1.0 SignalChart.qml
+Header	1.0 Header.qml
+Window	1.0 Window.qml
 
-Chart			 1.0 components/Chart.qml
-FlatButton		 1.0 components/FlatButton.qml
-ListShadow		 1.0 components/ListShadow.qml
-LongPressButton  1.0 components/LongPressButton.qml
-MenuButton		 1.0 components/MenuButton.qml
-ProgressRing	 1.0 components/ProgressRing.qml
-SideShadow		 1.0 components/SideShadow.qml
+ColorDialog		1.0 components/ColorDialog.qml
+Dialog			1.0 components/Dialog.qml
+FlatButton		1.0 components/FlatButton.qml
+Input			1.0 components/Input.qml
+ListShadow		1.0 components/ListShadow.qml
+LongPressButton	1.0 components/LongPressButton.qml
+MenuButton		1.0 components/MenuButton.qml
+ProgressRing	1.0 components/ProgressRing.qml
+SideShadow		1.0 components/SideShadow.qml
+TextArea		1.0 components/TextArea.qml
+
+Chart			1.0 components/charts/Chart.qml
+ChartOverlay	1.0 components/charts/ChartOverlay.qml
+ChartDelegate	1.0 components/charts/ChartDelegate.qml
+Signal			1.0 components/charts/Signal.qml
+Spectrogram		1.0 components/charts/Spectrogram.qml

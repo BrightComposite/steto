@@ -1,5 +1,3 @@
-CONFIG += c++11 no_keywords
-
 SOURCES += \
     $$PWD/src/System.cpp \
     $$PWD/common_plugin.cpp

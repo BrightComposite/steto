@@ -17,7 +17,7 @@ DeviceService::DeviceService(QObject *parent) : QObject(parent) {
 	qDebug() << "Create DeviceService...";
 
 	_connection = new BtConnection(this);
-	_data = new DataService(_connection);
+	_recording = new RecordingService(_connection);
 
 #if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
 	_local = new QBluetoothLocalDevice(this);
@@ -93,8 +93,8 @@ bool DeviceService::isConnecting() const {
 	return _isConnecting;
 }
 
-DataService * DeviceService::data() const {
-	return _data;
+RecordingService * DeviceService::recording() const {
+	return _recording;
 }
 
 void DeviceService::clearDevices() {

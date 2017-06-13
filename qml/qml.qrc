@@ -3,23 +3,44 @@
         <file>steto/main.qml</file>
         <file>steto/qmldir</file>
         <file>steto/view/qmldir</file>
-        <file>steto/view/MainMenuForm.qml</file>
-        <file>steto/view/MainMenu.qml</file>
         <file>steto/view/components/MenuButton.qml</file>
         <file>qtquickcontrols2.conf</file>
-        <file>steto/view/DeviceListForm.qml</file>
-        <file>steto/view/DeviceList.qml</file>
+        <file>steto/view/devices/DevicesForm.qml</file>
+        <file>steto/view/devices/Devices.qml</file>
         <file>steto/view/Header.qml</file>
         <file>steto/view/components/SideShadow.qml</file>
         <file>steto/view/components/ListShadow.qml</file>
-        <file>steto/view/Visualization.qml</file>
-        <file>steto/view/VisualizationForm.qml</file>
-        <file>steto/view/components/Chart.qml</file>
+        <file>steto/view/measurement/Measurement.qml</file>
+        <file>steto/view/measurement/MeasurementForm.qml</file>
+        <file>steto/view/components/charts/Chart.qml</file>
         <file>steto/view/components/ProgressRing.qml</file>
-        <file>steto/view/components/chart/Signal.qml</file>
-        <file>steto/view/components/chart/Spectrogram.qml</file>
-        <file>steto/view/SignalChart.qml</file>
+        <file>steto/view/components/charts/Signal.qml</file>
+        <file>steto/view/components/charts/Spectrogram.qml</file>
         <file>steto/view/components/LongPressButton.qml</file>
         <file>steto/view/components/FlatButton.qml</file>
+        <file>steto/model/Migrations.qml</file>
+        <file>steto/model/qmldir</file>
+        <file>steto/model/Patient.qml</file>
+        <file>steto/model/PatientsRepo.qml</file>
+        <file>steto/view/components/charts/ChartOverlay.qml</file>
+        <file>steto/view/components/charts/ChartDelegate.qml</file>
+        <file>steto/view/patients/PatientsList.qml</file>
+        <file>steto/view/patients/PatientsListForm.qml</file>
+        <file>steto/view/patients/CreatePatient.qml</file>
+        <file>steto/view/patients/EditPatientForm.qml</file>
+        <file>steto/view/components/Input.qml</file>
+        <file>steto/view/components/TextArea.qml</file>
+        <file>steto/view/patients/PatientItem.qml</file>
+        <file>steto/view/patients/PatientInfoForm.qml</file>
+        <file>steto/view/patients/EditPatient.qml</file>
+        <file>steto/view/patients/PatientInfo.qml</file>
+        <file>steto/view/Window.qml</file>
+        <file>steto/view/components/Dialog.qml</file>
+        <file>steto/view/components/ColorDialog.qml</file>
+        <file>steto/view/external/ExternalFiles.qml</file>
+        <file>steto/view/external/ExternalFilesForm.qml</file>
+        <file>steto/view/measurement/Analysis.qml</file>
+        <file>steto/view/measurement/ExternalAnalysis.qml</file>
+        <file>steto/view/measurement/TestAnalysis.qml</file>
     </qresource>
 </RCC>

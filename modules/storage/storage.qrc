@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/ru/applabs">
+        <file>ru/applabs/storage/Migrations.qml</file>
+        <file>ru/applabs/storage/Model.qml</file>
+        <file>ru/applabs/storage/QueryBuilder.qml</file>
+        <file>ru/applabs/storage/Record.qml</file>
+        <file>ru/applabs/storage/Repository.qml</file>
+        <file>ru/applabs/storage/Storage.qml</file>
+        <file>ru/applabs/storage/qmldir</file>
+    </qresource>
+</RCC>
